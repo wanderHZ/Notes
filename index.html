@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的 Gemini 代码库</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 40px 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 40px; }
+        .folder-group { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .folder-name { font-size: 20px; color: #202124; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 15px; text-transform: capitalize; }
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .file-card { 
+            display: block; padding: 15px; background: #f8f9fa; border: 1px solid #dadce0; 
+            border-radius: 8px; text-decoration: none; color: #1a0dab; font-weight: 500;
+            transition: all 0.2s ease; text-align: center; word-break: break-all;
+        }
+        .file-card:hover { background: #e8f0fe; border-color: #1a73e8; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.15); }
+        #loading { text-align: center; color: #666; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 我的 Gemini 组件实验室</h1>
+    <div id="loading">正在扫描仓库文件...</div>
+    <div id="gallery"></div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚠️ 必填：请把下面这两个变量换成你自己的！
+    // ==========================================
+    const GITHUB_USER = 'wanderHZ'; 
+    const GITHUB_REPO = 'Notes';
+    const BRANCH = 'main'; // 如果你的主分支叫 master，请改成 master
+
+    const gallery = document.getElementById('gallery');
+    const loading = document.getElementById('loading');
+    const pageUrl = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/`;
+
+    // 调用 GitHub Tree API 获取所有文件
+    fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${BRANCH}?recursive=1`)
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            if (!data.tree) {
+                gallery.innerHTML = '<p style="text-align:center;color:red;">读取失败，请检查用户名、仓库名或分支是否填写正确。</p>';
+                return;
+            }
+
+            // 过滤出 html 文件，并排除当前的 index.html
+            const htmlFiles = data.tree.filter(item => item.path.endsWith('.html') && item.path !== 'index.html');
+            
+            // 按文件夹分类整理数据
+            const categories = {};
+            htmlFiles.forEach(file => {
+                const parts = file.path.split('/');
+                const isRoot = parts.length === 1;
+                const folderName = isRoot ? '未分类 (根目录)' : parts[0];
+                const fileName = parts[parts.length - 1];
+
+                if (!categories[folderName]) categories[folderName] = [];
+                categories[folderName].push({ path: file.path, name: fileName });
+            });
+
+            // 渲染到页面上
+            for (const [folder, files] of Object.entries(categories)) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'folder-group';
+                
+                const title = document.createElement('h3');
+                title.className = 'folder-name';
+                title.innerText = '📁 ' + folder;
+                groupDiv.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'file-grid';
+
+                files.forEach(file => {
+                    const a = document.createElement('a');
+                    a.className = 'file-card';
+                    a.href = pageUrl + file.path; // 拼接真实的 GitHub Pages 预览链接
+                    a.target = '_blank';
+                    a.innerText = '📄 ' + file.name.replace('.html', '');
+                    grid.appendChild(a);
+                });
+
+                groupDiv.appendChild(grid);
+                gallery.appendChild(groupDiv);
+            }
+
+            if (Object.keys(categories).length === 0) {
+                 gallery.innerHTML = '<p style="text-align:center;color:#666;">仓库里还没有其他的 HTML 文件哦，快用插件上传几个吧！</p>';
+            }
+        })
+        .catch(err => {
+            loading.innerText = '网络错误或 API 限流，请稍后再试。';
+            console.error(err);
+        });
+</script>
+
+</body>
+</html>
