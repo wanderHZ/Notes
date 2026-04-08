@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN" style="cursor: crosshair;"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的第一个网页</title>
@@ -38,10 +37,68 @@
 <body>
 
     <div class="card">
-        <h1>你好，世界！</h1>
+        <h1 style="color: rgb(255, 0, 0); background-color: rgb(255, 255, 255); font-size: 32px;">你好，世界！</h1>
         <p>这是我的第一个简单的 HTML 页面。</p>
         <button onclick="alert('你点击了按钮！')">点我试试</button>
     </div>
 
-</body>
-</html>
+<script>(function(){
+// sandbox.js —— 作为内联脚本注入到被预览的 HTML 中运行
+// 负责：点击选中元素、回传样式信息、接收样式修改
+
+let currentMode = 'preview';
+let selectedEl = null;
+
+const rgbToHex = (rgb) => {
+    if (!rgb || rgb.includes('rgba(0, 0, 0, 0)') || rgb === 'transparent') return '#ffffff';
+    const res = rgb.match(/\d+/g);
+    return res ? "#" + res.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join("") : "#ffffff";
+};
+
+window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (data.type === 'SET_MODE') {
+        currentMode = data.mode;
+        document.documentElement.style.cursor = (currentMode === 'edit') ? 'crosshair' : 'default';
+    }
+    if (data.type === 'CLEAR_SELECTION' && selectedEl) {
+        selectedEl.style.outline = '';
+        selectedEl = null;
+    }
+    if (data.type === 'APPLY_STYLE' && selectedEl) {
+        Object.assign(selectedEl.style, data.style);
+        // 临时移除选中框再抓 outerHTML，避免蓝框被保存进源码
+        selectedEl.style.outline = '';
+        window.parent.postMessage({
+            type: 'SYNC_SOURCE',
+            html: '<!DOCTYPE html>\n' + document.documentElement.outerHTML
+        }, '*');
+        selectedEl.style.outline = '2px solid #38bdf8';
+    }
+});
+
+window.addEventListener('click', (e) => {
+    if (currentMode !== 'edit') return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    if (selectedEl) selectedEl.style.outline = '';
+    selectedEl = e.target;
+    selectedEl.style.outline = '2px solid #38bdf8';
+
+    const nodeIdx = selectedEl.getAttribute('data-node-idx');
+    const s = window.getComputedStyle(selectedEl);
+
+    window.parent.postMessage({
+        type: 'ELEMENT_CLICKED',
+        idx: nodeIdx,
+        styles: {
+            color: rgbToHex(s.color),
+            backgroundColor: rgbToHex(s.backgroundColor),
+            fontSize: s.fontSize
+        }
+    }, '*');
+}, true);
+
+})();</script>
+</body></html>
