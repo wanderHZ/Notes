@@ -34,40 +34,40 @@ code { font-family: var(--font-mono); font-size: 10px; background: var(--color-b
 
 <div style="padding:1rem 0">
 <div class="tabs">
-  <div class="tab active" onclick="sw('kv')">KV Cache 完整配置</div>
-  <div class="tab" onclick="sw('rope')">RoPE 完整配置</div>
-  <div class="tab" onclick="sw('arch')">架构完整配置</div>
+  <div class="tab" onclick="sw('kv')">KV Cache 完整配置</div>
+  <div class="tab" onclick="sw('rope')" style="">RoPE 完整配置</div>
+  <div class="tab active" onclick="sw('arch')">架构完整配置</div>
   <div class="tab" onclick="sw('check')">自检报告</div>
 </div>
 
 <!-- KV Cache 完整 -->
-<div class="panel active" id="tab-kv">
+<div class="panel" id="tab-kv">
 <div class="info">数据源：E2B = unsloth/gemma-4-E2B config.json；E4B = google/gemma-4-E4B-it config.json；26B = unsloth/gemma-4-26B-A4B-it-GGUF config.json；31B = google/gemma-4-31B-it config.json</div>
 <table>
   <thead><tr><th style="width:230px">字段</th><th>E2B</th><th>E4B</th><th>26B A4B</th><th class="hi">31B Dense</th></tr></thead>
   <tbody>
-    <tr class="sec"><td colspan="5" style="outline: none; color: rgb(0, 0, 0); background-color: rgb(255, 253, 240); font-size: 10px;">注意力头数</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(255, 255, 220); background-color: rgb(255, 255, 235); font-size: 10px;">注意力头数</td></tr>
     <tr><td class="rl">num_attention_heads (Q)</td><td>8</td><td>8</td><td>16</td><td class="hi">32</td></tr>
-    <tr><td class="rl" style="outline: none;">num_key_value_heads (sliding KV)</td><td><b>1</b></td><td><b>2</b></td><td>8</td><td class="hi">16</td></tr>
+    <tr><td class="rl">num_key_value_heads (sliding KV)</td><td><b>1</b></td><td><b>2</b></td><td>8</td><td class="hi">16</td></tr>
     <tr><td class="rl">num_global_key_value_heads (global KV)</td><td><b>null</b> <span class="tag tgr">→ 同sliding=1</span></td><td><b>null</b> <span class="tag tgr">→ 同sliding=2</span></td><td><b>2</b> <span class="tag ta">≠ sliding</span></td><td class="hi"><b>4</b> <span class="tag ta">≠ sliding</span></td></tr>
     <tr><td class="rl">Sliding GQA 比 (Q : KV)</td><td>8 : 1</td><td>4 : 1</td><td>2 : 1</td><td class="hi">2 : 1</td></tr>
-    <tr><td class="rl">Global GQA 比 (Q : KV)</td><td>8 : 1 (null→1)</td><td>4 : 1 (null→2)</td><td>8 : 1 (16Q:2KV)</td><td class="hi">8 : 1 (32Q:4KV)</td></tr>
+    <tr><td class="rl">Global GQA 比 (Q : KV)</td><td>8 : 1 (null→1)</td><td>4 : 1 (null→2)</td><td>8 : 1 (16Q:2KV)</td><td class="hi" style="">8 : 1 (32Q:4KV)</td></tr>
 
-    <tr class="sec"><td colspan="5" style="outline: none; color: rgb(0, 0, 0); background-color: rgb(255, 253, 240); font-size: 10px;">Head 维度</td></tr>
-    <tr><td class="rl">head_dim (sliding 层 Q/K/V)</td><td>256</td><td>256</td><td style="outline: none;">256</td><td class="hi">256</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">Head 维度</td></tr>
+    <tr><td class="rl">head_dim (sliding 层 Q/K/V)</td><td>256</td><td>256</td><td>256</td><td class="hi">256</td></tr>
     <tr><td class="rl">global_head_dim (global 层 Q/K/V)</td><td>512</td><td>512</td><td>512</td><td class="hi">512</td></tr>
     <tr><td class="rl">global 层每 KV 头总维度</td><td>1×512=512</td><td>2×512=1024</td><td>2×512=1024</td><td class="hi">4×512=2048</td></tr>
     <tr><td class="rl">sliding 层每 KV 头总维度</td><td>1×256=256</td><td>2×256=512</td><td>8×256=2048</td><td class="hi">16×256=4096</td></tr>
 
-    <tr class="sec"><td colspan="5" style="outline: none; color: rgb(0, 0, 0); background-color: rgb(255, 253, 240); font-size: 10px;">K=V 权重共享</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">K=V 权重共享</td></tr>
     <tr><td class="rl">attention_k_eq_v</td>
       <td><span class="tag tr">false（K≠V）</span></td>
       <td><span class="tag tr">false（K≠V）</span></td>
       <td><span class="tag tg">true（K=V）</span></td>
       <td class="hi"><span class="tag tg">true（K=V）</span></td></tr>
-    <tr><td class="rl">说明</td><td colspan="2">K/V 各自独立投影矩阵</td><td colspan="2">K/V 共享同一投影，节省参数</td></tr>
+    <tr><td class="rl">说明</td><td colspan="2">K/V 各自独立投影矩阵</td><td colspan="2" style="">K/V 共享同一投影，节省参数</td></tr>
 
-    <tr class="sec"><td colspan="5" style="outline: none; color: rgb(0, 0, 0); background-color: rgb(255, 253, 240); font-size: 10px;">Shared KV Cache（跨层复用）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">Shared KV Cache（跨层复用）</td></tr>
     <tr><td class="rl">num_kv_shared_layers</td>
       <td><b>20</b> <span class="tag tr">57% 层复用</span></td>
       <td><b>18</b> <span class="tag ta">43% 层复用</span></td>
@@ -77,11 +77,11 @@ code { font-family: var(--font-mono); font-size: 10px; background: var(--color-b
     <tr><td class="rl">Shared 层位置</td><td>层 16→35（后半）</td><td>层 25→42（后半）</td><td>—</td><td class="hi">—</td></tr>
     <tr><td class="rl">复用规则</td><td colspan="2">同类型（sliding/global）最近一层的 K/V</td><td>—</td><td class="hi">—</td></tr>
 
-    <tr class="sec"><td colspan="5" style="outline: none; color: rgb(0, 0, 0); background-color: rgb(255, 253, 240); font-size: 10px;">滑动窗口</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">滑动窗口</td></tr>
     <tr><td class="rl">sliding_window（tokens）</td><td>512</td><td>512</td><td>1024</td><td class="hi">1024</td></tr>
     <tr><td class="rl">sliding KV cache 实际大小</td><td>min(seq, 512) tokens</td><td>min(seq, 512) tokens</td><td>min(seq, 1024) tokens</td><td class="hi">min(seq, 1024) tokens</td></tr>
 
-    <tr class="sec"><td colspan="5" style="outline: rgb(56, 189, 248) solid 2px; color: rgb(0, 0, 0); background-color: rgb(255, 253, 240); font-size: 10px;">双向注意力</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">双向注意力</td></tr>
     <tr><td class="rl">use_bidirectional_attention</td>
       <td><b>null</b></td><td><b>null</b></td>
       <td>"vision"</td><td class="hi">"vision"</td></tr>
@@ -94,23 +94,23 @@ code { font-family: var(--font-mono); font-size: 10px; background: var(--color-b
 <table>
   <thead><tr><th style="width:230px">字段</th><th>E2B</th><th>E4B</th><th>26B A4B</th><th class="hi">31B Dense</th></tr></thead>
   <tbody>
-    <tr class="sec"><td colspan="5">Sliding 层 RoPE（局部注意力）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">Sliding 层 RoPE（局部注意力）</td></tr>
     <tr><td class="rl">rope_type</td><td>default</td><td>default</td><td>default</td><td class="hi">default</td></tr>
     <tr><td class="rl">rope_theta</td><td>10,000</td><td>10,000</td><td>10,000</td><td class="hi">10,000</td></tr>
     <tr><td class="rl">partial_rotary_factor</td><td>—（默认 1.0）</td><td>—（默认 1.0）</td><td>—（默认 1.0）</td><td class="hi">—（默认 1.0）</td></tr>
     <tr><td class="rl">旋转维度比例</td><td>100%</td><td>100%</td><td>100%</td><td class="hi">100%</td></tr>
 
-    <tr class="sec"><td colspan="5">Global 层 RoPE（全局注意力 / p-RoPE）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">Global 层 RoPE（全局注意力 / p-RoPE）</td></tr>
     <tr><td class="rl">rope_type</td><td>proportional</td><td>proportional</td><td>proportional</td><td class="hi">proportional</td></tr>
     <tr><td class="rl">rope_theta</td><td>1,000,000</td><td>1,000,000</td><td>1,000,000</td><td class="hi">1,000,000</td></tr>
     <tr><td class="rl">partial_rotary_factor</td><td>0.25</td><td>0.25</td><td>0.25</td><td class="hi">0.25</td></tr>
     <tr><td class="rl">旋转维度比例</td><td>25%</td><td>25%</td><td>25%</td><td class="hi">25%</td></tr>
     <tr><td class="rl">实际旋转维度数</td><td>512×0.25=128</td><td>512×0.25=128</td><td>512×0.25=128</td><td class="hi">512×0.25=128</td></tr>
 
-    <tr class="sec"><td colspan="5">位置编码范围</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">位置编码范围</td></tr>
     <tr><td class="rl">max_position_embeddings</td><td>131,072 (128K)</td><td>131,072 (128K)</td><td>262,144 (256K)</td><td class="hi">262,144 (256K)</td></tr>
 
-    <tr class="sec"><td colspan="5">视觉编码器 RoPE（独立）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">视觉编码器 RoPE（独立）</td></tr>
     <tr><td class="rl">rope_type</td><td>default</td><td>default</td><td>default</td><td class="hi">default</td></tr>
     <tr><td class="rl">rope_theta</td><td>100</td><td>100</td><td>100</td><td class="hi">100</td></tr>
   </tbody>
@@ -119,11 +119,11 @@ code { font-family: var(--font-mono); font-size: 10px; background: var(--color-b
 </div>
 
 <!-- 架构完整 -->
-<div class="panel" id="tab-arch">
+<div class="panel active" id="tab-arch">
 <table>
   <thead><tr><th style="width:230px">字段</th><th>E2B</th><th>E4B</th><th>26B A4B</th><th class="hi">31B Dense</th></tr></thead>
   <tbody>
-    <tr class="sec"><td colspan="5">模型维度</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">模型维度</td></tr>
     <tr><td class="rl">hidden_size</td><td>1536</td><td>2560</td><td><b>2816</b></td><td class="hi">5376</td></tr>
     <tr><td class="rl">intermediate_size（dense FFN）</td><td>6144</td><td>10240</td><td><b>2112</b> <span class="tag ta">MoE共存</span></td><td class="hi">21504</td></tr>
     <tr><td class="rl">moe_intermediate_size（专家 FFN）</td><td>—</td><td>—</td><td><b>704</b></td><td class="hi">—</td></tr>
@@ -134,25 +134,25 @@ code { font-family: var(--font-mono); font-size: 10px; background: var(--color-b
     <tr><td class="rl">vocab_size</td><td>262,144</td><td>262,144</td><td>262,144</td><td class="hi">262,144</td></tr>
     <tr><td class="rl">tie_word_embeddings</td><td>true</td><td>true</td><td>true</td><td class="hi">true</td></tr>
 
-    <tr class="sec"><td colspan="5">MoE 配置（仅 26B）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">MoE 配置（仅 26B）</td></tr>
     <tr><td class="rl">enable_moe_block</td><td>false</td><td>false</td><td><b>true</b></td><td class="hi">false</td></tr>
     <tr><td class="rl">num_experts</td><td>null</td><td>null</td><td><b>128</b></td><td class="hi">null</td></tr>
     <tr><td class="rl">top_k_experts</td><td>null</td><td>null</td><td><b>8</b></td><td class="hi">null</td></tr>
 
-    <tr class="sec"><td colspan="5">PLE（Per-Layer Embeddings）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">PLE（Per-Layer Embeddings）</td></tr>
     <tr><td class="rl">hidden_size_per_layer_input</td><td><b>256</b> <span class="tag tg">启用</span></td><td><b>256</b> <span class="tag tg">启用</span></td><td>0 <span class="tag tgr">关闭</span></td><td class="hi">0 <span class="tag tgr">关闭</span></td></tr>
     <tr><td class="rl">vocab_size_per_layer_input</td><td>262,144</td><td>262,144</td><td>262,144</td><td class="hi">262,144</td></tr>
 
-    <tr class="sec"><td colspan="5">特殊 FFN 结构</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">特殊 FFN 结构</td></tr>
     <tr><td class="rl">use_double_wide_mlp</td><td><b>true</b> <span class="tag tp">唯一</span></td><td>false</td><td>false</td><td class="hi">false</td></tr>
 
-    <tr class="sec"><td colspan="5">层类型分布（来自 layer_types 精确计数）</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">层类型分布（来自 layer_types 精确计数）</td></tr>
     <tr><td class="rl">层模式</td><td>4:1（4 slide + 1 global）</td><td>5:1</td><td>5:1</td><td class="hi">5:1</td></tr>
     <tr><td class="rl">sliding 层数</td><td>28</td><td>36</td><td>25</td><td class="hi">50</td></tr>
     <tr><td class="rl">full/global 层数</td><td>7</td><td>6</td><td>5</td><td class="hi">10</td></tr>
     <tr><td class="rl">最后一层类型</td><td>full_attention</td><td>full_attention</td><td>full_attention</td><td class="hi">full_attention</td></tr>
 
-    <tr class="sec"><td colspan="5">数据类型</td></tr>
+    <tr class="sec"><td colspan="5" style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 235); font-size: 10px;">数据类型</td></tr>
     <tr><td class="rl">dtype</td><td>bfloat16</td><td>bfloat16</td><td>bfloat16</td><td class="hi">bfloat16</td></tr>
     <tr><td class="rl">attention_bias</td><td>false</td><td>false</td><td>false</td><td class="hi">false</td></tr>
     <tr><td class="rl">attention_dropout</td><td>0.0</td><td>0.0</td><td>0.0</td><td class="hi">0.0</td></tr>
@@ -242,13 +242,19 @@ window.addEventListener('message', (event) => {
         currentMode = data.mode;
         document.documentElement.style.cursor = (currentMode === 'edit') ? 'crosshair' : 'default';
     }
+    if (data.type === 'CLEAR_SELECTION' && selectedEl) {
+        selectedEl.style.outline = '';
+        selectedEl = null;
+    }
     if (data.type === 'APPLY_STYLE' && selectedEl) {
         Object.assign(selectedEl.style, data.style);
-        // 回传完整文档 HTML，保留 <head>、<style> 等结构
+        // 临时移除选中框再抓 outerHTML，避免蓝框被保存进源码
+        selectedEl.style.outline = '';
         window.parent.postMessage({
             type: 'SYNC_SOURCE',
             html: '<!DOCTYPE html>\n' + document.documentElement.outerHTML
         }, '*');
+        selectedEl.style.outline = '2px solid #38bdf8';
     }
 });
 
@@ -257,7 +263,7 @@ window.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopImmediatePropagation();
 
-    if (selectedEl) selectedEl.style.outline = 'none';
+    if (selectedEl) selectedEl.style.outline = '';
     selectedEl = e.target;
     selectedEl.style.outline = '2px solid #38bdf8';
 
