@@ -1,36 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <title>Studio V24 - 终极修复版</title>
-  <style>
-    body, html { margin: 0; padding: 0; height: 100vh; font-family: system-ui; overflow: hidden; display: flex; flex-direction: column; background: #0f172a; }
-    #header { height: 50px; background: #1e293b; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; border-bottom: 1px solid #334155; color: #fff; }
-    #main { flex: 1; display: flex; overflow: hidden; }
-    #sidebar { width: 0; background: #1a1a1a; transition: 0.3s; overflow: hidden; display: flex; flex-direction: column; }
-    #sidebar.open { width: 450px; border-right: 1px solid #334155; }
-    #editor { flex: 1; background: #1a1a1a; color: #d1d5db; border: none; padding: 15px; font-family: monospace; font-size: 13px; outline: none; resize: none; line-height: 1.6; }
-    #canvas { flex: 1; background: #f1f5f9; padding: 20px; display: flex; }
-    #iframe-box { width: 100%; height: 100%; background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
-    iframe { width: 100%; height: 100%; border: none; }
-    .btn { padding: 6px 14px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 12px; }
-    #btn-mode { background: #334155; color: white; }
-    #btn-mode.active { background: #3b82f6; }
-    #btn-save { background: #10b981; color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的第一个网页</title>
+    <style>
+        /* 这里是简单的 CSS，让网页好看一点 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <div id="header">
-    <div style="font-weight:800; color:#3b82f6">STUDIO V24</div>
-    <div style="display:flex; gap:10px;">
-      <button id="btn-mode" class="btn">✏️ 开启编辑</button>
-      <button id="btn-save" class="btn">💾 净化并保存代码</button>
+
+    <div class="card">
+        <h1>你好，世界！</h1>
+        <p>这是我的第一个简单的 HTML 页面。</p>
+        <button onclick="alert('你点击了按钮！')">点我试试</button>
     </div>
-  </div>
-  <div id="main">
-    <div id="sidebar"><textarea id="editor" spellcheck="false"></textarea></div>
-    <div id="canvas"><div id="iframe-box"><iframe id="viewer" src="sandbox.html"></iframe></div></div>
-  </div>
-  <script src="preview.js"></script>
+
 </body>
 </html>
