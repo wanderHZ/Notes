@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+
+<style>
+* { box-sizing: border-box; }
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tab { padding: 5px 13px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); color: var(--color-text-secondary); }
+.tab.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); padding: 6px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); text-align: left; white-space: nowrap; }
+td { padding: 6px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); font-size: 12px; }
+tr:last-child td { border-bottom: none; }
+.rl { color: var(--color-text-secondary); font-size: 11px; font-weight: 500; white-space: nowrap; }
+.sec td { background: var(--color-background-secondary); font-size: 10px; font-weight: 500; color: var(--color-text-secondary); padding: 4px 10px; letter-spacing: .04em; text-transform: uppercase; }
+.hi { background: rgba(55,138,221,0.07); }
+
+.tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 500; }
+.tg { background:#EAF3DE; color:#3B6D11; }
+.tr { background:#FCEBEB; color:#A32D2D; }
+.tb { background:#E6F1FB; color:#185FA5; }
+.ta { background:#FAEEDA; color:#854F0B; }
+.tp { background:#EEEDFE; color:#3C3489; }
+.tgr { background:var(--color-background-secondary); color:var(--color-text-secondary); }
+
+.warn { border-left: 3px solid #EF9F27; padding: 7px 11px; background: var(--color-background-warning); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; font-size: 11px; color: var(--color-text-primary); margin: 8px 0; }
+.info { border-left: 3px solid #378ADD; padding: 7px 11px; background: var(--color-background-info); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; font-size: 11px; color: var(--color-text-primary); margin: 8px 0; }
+code { font-family: var(--font-mono); font-size: 10px; background: var(--color-background-tertiary); padding: 1px 4px; border-radius: 3px; }
+
+.diff { font-weight: 500; color: var(--color-text-danger, #A32D2D); }
+.src { font-size: 10px; color: var(--color-text-tertiary); }
+</style>
+
+<div style="padding:1rem 0">
+<div class="tabs">
+  <div class="tab active" onclick="sw('kv')">KV Cache 完整配置</div>
+  <div class="tab" onclick="sw('rope')">RoPE 完整配置</div>
+  <div class="tab" onclick="sw('arch')">架构完整配置</div>
+  <div class="tab" onclick="sw('check')">自检报告</div>
+</div>
+
+<!-- KV Cache 完整 -->
+<div class="panel active" id="tab-kv">
+<div class="info">数据源：E2B = unsloth/gemma-4-E2B config.json；E4B = google/gemma-4-E4B-it config.json；26B = unsloth/gemma-4-26B-A4B-it-GGUF config.json；31B = google/gemma-4-31B-it config.json</div>
+<table>
+  <thead><tr><th style="width:230px">字段</th><th>E2B</th><th>E4B</th><th>26B A4B</th><th class="hi">31B Dense</th></tr></thead>
+  <tbody>
+    <tr class="sec"><td colspan="5">注意力头数</td></tr>
+    <tr><td class="rl">num_attention_heads (Q)</td><td>8</td><td>8</td><td>16</td><td class="hi">32</td></tr>
+    <tr><td class="rl">num_key_value_heads (sliding KV)</td><td><b>1</b></td><td><b>2</b></td><td>8</td><td class="hi">16</td></tr>
+    <tr><td class="rl">num_global_key_value_heads (global KV)</td><td><b>null</b> <span class="tag tgr">→ 同sliding=1</span></td><td><b>null</b> <span class="tag tgr">→ 同sliding=2</span></td><td><b>2</b> <span class="tag ta">≠ sliding</span></td><td class="hi"><b>4</b> <span class="tag ta">≠ sliding</span></td></tr>
+    <tr><td class="rl">Sliding GQA 比 (Q : KV)</td><td>8 : 1</td><td>4 : 1</td><td>2 : 1</td><td class="hi">2 : 1</td></tr>
+    <tr><td class="rl">Global GQA 比 (Q : KV)</td><td>8 : 1 (null→1)</td><td>4 : 1 (null→2)</td><td>8 : 1 (16Q:2KV)</td><td class="hi">8 : 1 (32Q:4KV)</td></tr>
+
+    <tr class="sec"><td colspan="5">Head 维度</td></tr>
+    <tr><td class="rl">head_dim (sliding 层 Q/K/V)</td><td>256</td><td>256</td><td>256</td><td class="hi">256</td></tr>
+    <tr><td class="rl">global_head_dim (global 层 Q/K/V)</td><td>512</td><td>512</td><td>512</td><td class="hi">512</td></tr>
+    <tr><td class="rl">global 层每 KV 头总维度</td><td>1×512=512</td><td>2×512=1024</td><td>2×512=1024</td><td class="hi">4×512=2048</td></tr>
+    <tr><td class="rl">sliding 层每 KV 头总维度</td><td>1×256=256</td><td>2×256=512</td><td>8×256=2048</td><td class="hi">16×256=4096</td></tr>
+
+    <tr class="sec"><td colspan="5">K=V 权重共享</td></tr>
+    <tr><td class="rl">attention_k_eq_v</td>
+      <td><span class="tag tr">false（K≠V）</span></td>
+      <td><span class="tag tr">false（K≠V）</span></td>
+      <td><span class="tag tg">true（K=V）</span></td>
+      <td class="hi"><span class="tag tg">true（K=V）</span></td></tr>
+    <tr><td class="rl">说明</td><td colspan="2">K/V 各自独立投影矩阵</td><td colspan="2">K/V 共享同一投影，节省参数</td></tr>
+
+    <tr class="sec"><td colspan="5">Shared KV Cache（跨层复用）</td></tr>
+    <tr><td class="rl">num_kv_shared_layers</td>
+      <td><b>20</b> <span class="tag tr">57% 层复用</span></td>
+      <td><b>18</b> <span class="tag ta">43% 层复用</span></td>
+      <td><b>0</b> <span class="tag tgr">无</span></td>
+      <td class="hi"><b>0</b> <span class="tag tgr">无</span></td></tr>
+    <tr><td class="rl">独立计算 KV 的层数</td><td>35−20 = <b>15</b></td><td>42−18 = <b>24</b></td><td>30 / 30</td><td class="hi">60 / 60</td></tr>
+    <tr><td class="rl">Shared 层位置</td><td>层 16→35（后半）</td><td>层 25→42（后半）</td><td>—</td><td class="hi">—</td></tr>
+    <tr><td class="rl">复用规则</td><td colspan="2">同类型（sliding/global）最近一层的 K/V</td><td>—</td><td class="hi">—</td></tr>
+
+    <tr class="sec"><td colspan="5">滑动窗口</td></tr>
+    <tr><td class="rl">sliding_window（tokens）</td><td>512</td><td>512</td><td>1024</td><td class="hi">1024</td></tr>
+    <tr><td class="rl">sliding KV cache 实际大小</td><td>min(seq, 512) tokens</td><td>min(seq, 512) tokens</td><td>min(seq, 1024) tokens</td><td class="hi">min(seq, 1024) tokens</td></tr>
+
+    <tr class="sec"><td colspan="5">双向注意力</td></tr>
+    <tr><td class="rl">use_bidirectional_attention</td>
+      <td><b>null</b></td><td><b>null</b></td>
+      <td>"vision"</td><td class="hi">"vision"</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- RoPE 完整 -->
+<div class="panel" id="tab-rope">
+<table>
+  <thead><tr><th style="width:230px">字段</th><th>E2B</th><th>E4B</th><th>26B A4B</th><th class="hi">31B Dense</th></tr></thead>
+  <tbody>
+    <tr class="sec"><td colspan="5">Sliding 层 RoPE（局部注意力）</td></tr>
+    <tr><td class="rl">rope_type</td><td>default</td><td>default</td><td>default</td><td class="hi">default</td></tr>
+    <tr><td class="rl">rope_theta</td><td>10,000</td><td>10,000</td><td>10,000</td><td class="hi">10,000</td></tr>
+    <tr><td class="rl">partial_rotary_factor</td><td>—（默认 1.0）</td><td>—（默认 1.0）</td><td>—（默认 1.0）</td><td class="hi">—（默认 1.0）</td></tr>
+    <tr><td class="rl">旋转维度比例</td><td>100%</td><td>100%</td><td>100%</td><td class="hi">100%</td></tr>
+
+    <tr class="sec"><td colspan="5">Global 层 RoPE（全局注意力 / p-RoPE）</td></tr>
+    <tr><td class="rl">rope_type</td><td>proportional</td><td>proportional</td><td>proportional</td><td class="hi">proportional</td></tr>
+    <tr><td class="rl">rope_theta</td><td>1,000,000</td><td>1,000,000</td><td>1,000,000</td><td class="hi">1,000,000</td></tr>
+    <tr><td class="rl">partial_rotary_factor</td><td>0.25</td><td>0.25</td><td>0.25</td><td class="hi">0.25</td></tr>
+    <tr><td class="rl">旋转维度比例</td><td>25%</td><td>25%</td><td>25%</td><td class="hi">25%</td></tr>
+    <tr><td class="rl">实际旋转维度数</td><td>512×0.25=128</td><td>512×0.25=128</td><td>512×0.25=128</td><td class="hi">512×0.25=128</td></tr>
+
+    <tr class="sec"><td colspan="5">位置编码范围</td></tr>
+    <tr><td class="rl">max_position_embeddings</td><td>131,072 (128K)</td><td>131,072 (128K)</td><td>262,144 (256K)</td><td class="hi">262,144 (256K)</td></tr>
+
+    <tr class="sec"><td colspan="5">视觉编码器 RoPE（独立）</td></tr>
+    <tr><td class="rl">rope_type</td><td>default</td><td>default</td><td>default</td><td class="hi">default</td></tr>
+    <tr><td class="rl">rope_theta</td><td>100</td><td>100</td><td>100</td><td class="hi">100</td></tr>
+  </tbody>
+</table>
+<div class="info" style="margin-top:10px">p-RoPE 说明：global 层仅对 head 维度的 25%（128 维）做旋转编码，其余 75% 保持原始内积，配合 theta=1M 使超长 token 间位置衰减极小，支撑 256K 上下文。四个模型 RoPE 配置完全一致，区别只在 max_position_embeddings。</div>
+</div>
+
+<!-- 架构完整 -->
+<div class="panel" id="tab-arch">
+<table>
+  <thead><tr><th style="width:230px">字段</th><th>E2B</th><th>E4B</th><th>26B A4B</th><th class="hi">31B Dense</th></tr></thead>
+  <tbody>
+    <tr class="sec"><td colspan="5">模型维度</td></tr>
+    <tr><td class="rl">hidden_size</td><td>1536</td><td>2560</td><td><b>2816</b></td><td class="hi">5376</td></tr>
+    <tr><td class="rl">intermediate_size（dense FFN）</td><td>6144</td><td>10240</td><td><b>2112</b> <span class="tag ta">MoE共存</span></td><td class="hi">21504</td></tr>
+    <tr><td class="rl">moe_intermediate_size（专家 FFN）</td><td>—</td><td>—</td><td><b>704</b></td><td class="hi">—</td></tr>
+    <tr><td class="rl">num_hidden_layers</td><td>35</td><td>42</td><td>30</td><td class="hi">60</td></tr>
+    <tr><td class="rl">hidden_activation</td><td>gelu_pytorch_tanh</td><td>gelu_pytorch_tanh</td><td>gelu_pytorch_tanh</td><td class="hi">gelu_pytorch_tanh</td></tr>
+    <tr><td class="rl">rms_norm_eps</td><td>1e-06</td><td>1e-06</td><td>1e-06</td><td class="hi">1e-06</td></tr>
+    <tr><td class="rl">final_logit_softcapping</td><td>30.0</td><td>30.0</td><td>30.0</td><td class="hi">30.0</td></tr>
+    <tr><td class="rl">vocab_size</td><td>262,144</td><td>262,144</td><td>262,144</td><td class="hi">262,144</td></tr>
+    <tr><td class="rl">tie_word_embeddings</td><td>true</td><td>true</td><td>true</td><td class="hi">true</td></tr>
+
+    <tr class="sec"><td colspan="5">MoE 配置（仅 26B）</td></tr>
+    <tr><td class="rl">enable_moe_block</td><td>false</td><td>false</td><td><b>true</b></td><td class="hi">false</td></tr>
+    <tr><td class="rl">num_experts</td><td>null</td><td>null</td><td><b>128</b></td><td class="hi">null</td></tr>
+    <tr><td class="rl">top_k_experts</td><td>null</td><td>null</td><td><b>8</b></td><td class="hi">null</td></tr>
+
+    <tr class="sec"><td colspan="5">PLE（Per-Layer Embeddings）</td></tr>
+    <tr><td class="rl">hidden_size_per_layer_input</td><td><b>256</b> <span class="tag tg">启用</span></td><td><b>256</b> <span class="tag tg">启用</span></td><td>0 <span class="tag tgr">关闭</span></td><td class="hi">0 <span class="tag tgr">关闭</span></td></tr>
+    <tr><td class="rl">vocab_size_per_layer_input</td><td>262,144</td><td>262,144</td><td>262,144</td><td class="hi">262,144</td></tr>
+
+    <tr class="sec"><td colspan="5">特殊 FFN 结构</td></tr>
+    <tr><td class="rl">use_double_wide_mlp</td><td><b>true</b> <span class="tag tp">唯一</span></td><td>false</td><td>false</td><td class="hi">false</td></tr>
+
+    <tr class="sec"><td colspan="5">层类型分布（来自 layer_types 精确计数）</td></tr>
+    <tr><td class="rl">层模式</td><td>4:1（4 slide + 1 global）</td><td>5:1</td><td>5:1</td><td class="hi">5:1</td></tr>
+    <tr><td class="rl">sliding 层数</td><td>28</td><td>36</td><td>25</td><td class="hi">50</td></tr>
+    <tr><td class="rl">full/global 层数</td><td>7</td><td>6</td><td>5</td><td class="hi">10</td></tr>
+    <tr><td class="rl">最后一层类型</td><td>full_attention</td><td>full_attention</td><td>full_attention</td><td class="hi">full_attention</td></tr>
+
+    <tr class="sec"><td colspan="5">数据类型</td></tr>
+    <tr><td class="rl">dtype</td><td>bfloat16</td><td>bfloat16</td><td>bfloat16</td><td class="hi">bfloat16</td></tr>
+    <tr><td class="rl">attention_bias</td><td>false</td><td>false</td><td>false</td><td class="hi">false</td></tr>
+    <tr><td class="rl">attention_dropout</td><td>0.0</td><td>0.0</td><td>0.0</td><td class="hi">0.0</td></tr>
+    <tr><td class="rl">initializer_range</td><td>0.02</td><td>0.02</td><td>0.02</td><td class="hi">0.02</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- 自检报告 -->
+<div class="panel" id="tab-check">
+<div style="font-size:12px;font-weight:500;margin-bottom:8px;color:var(--color-text-primary)">与原始 config.json 逐字段对照自查结果</div>
+
+<div class="warn">
+<b>⚠ 历史错误（已在本图全部修正）</b>
+<ul style="margin:6px 0 0 16px;line-height:1.9">
+  <li><b>26B 的 hidden_size</b>：之前误写 3072，实际为 <code>2816</code></li>
+  <li><b>26B 的 num_global_key_value_heads</b>：之前误写 4，实际为 <code>2</code></li>
+  <li><b>E2B/E4B 的 num_global_key_value_heads</b>：之前误写 4，实际为 <code>null</code>（复用 sliding 值）</li>
+  <li><b>E2B 的 layer 数</b>：E2B 实际是 4:1 模式（35 层 = 28 slide + 7 global），之前写成 5:1</li>
+  <li><b>26B 的 intermediate_size</b>：之前未区分 dense FFN (2112) 与 moe_intermediate_size (704)</li>
+  <li><b>Shared KV</b>：之前整张图完全遗漏，E2B=20，E4B=18，26B/31B=0</li>
+  <li><b>attention_k_eq_v</b>：E2B/E4B 为 false（K≠V），26B/31B 为 true（K=V）</li>
+  <li><b>use_bidirectional_attention</b>：E2B/E4B 为 null，26B/31B 为 "vision"</li>
+</ul>
+</div>
+
+<div class="info">
+<b>✓ 本图已验证字段（与 config.json 100% 一致）</b>
+<ul style="margin:6px 0 0 16px;line-height:1.9">
+  <li>num_attention_heads：E2B=8, E4B=8, 26B=16, 31B=32 ✓</li>
+  <li>num_key_value_heads：E2B=1, E4B=2, 26B=8, 31B=16 ✓</li>
+  <li>num_global_key_value_heads：E2B=null, E4B=null, 26B=2, 31B=4 ✓</li>
+  <li>head_dim：全部 256 ✓</li>
+  <li>global_head_dim：全部 512 ✓</li>
+  <li>num_kv_shared_layers：E2B=20, E4B=18, 26B=0, 31B=0 ✓</li>
+  <li>sliding_window：E2B/E4B=512, 26B/31B=1024 ✓</li>
+  <li>attention_k_eq_v：E2B/E4B=false, 26B/31B=true ✓</li>
+  <li>RoPE sliding theta=10000, global theta=1000000, partial_rotary_factor=0.25 ✓</li>
+  <li>hidden_size：E2B=1536, E4B=2560, 26B=2816, 31B=5376 ✓</li>
+  <li>num_hidden_layers：E2B=35, E4B=42, 26B=30, 31B=60 ✓</li>
+  <li>layer_types（精确计数）：E2B 4:1 / E4B/26B/31B 5:1 ✓</li>
+  <li>hidden_size_per_layer_input：E2B/E4B=256, 26B/31B=0 ✓</li>
+  <li>use_double_wide_mlp：E2B=true, 其余=false ✓</li>
+  <li>enable_moe_block / num_experts / top_k_experts：仅 26B 启用 ✓</li>
+  <li>moe_intermediate_size：仅 26B 有，值=704 ✓</li>
+  <li>intermediate_size：E2B=6144, E4B=10240, 26B=2112, 31B=21504 ✓</li>
+  <li>max_position_embeddings：E2B/E4B=131072, 26B/31B=262144 ✓</li>
+  <li>use_bidirectional_attention：E2B/E4B=null, 26B/31B="vision" ✓</li>
+  <li>final_logit_softcapping=30.0, rms_norm_eps=1e-6, vocab_size=262144 全部 ✓</li>
+</ul>
+</div>
+
+<div style="margin-top:10px;font-size:11px;color:var(--color-text-secondary)">
+数据来源：<br>
+• E2B：<code>unsloth/gemma-4-E2B/blob/main/config.json</code><br>
+• E4B：<code>google/gemma-4-E4B-it/blob/main/config.json</code><br>
+• 26B：<code>unsloth/gemma-4-26B-A4B-it-GGUF/blob/main/config.json</code>（与 google 官方 it 版本一致）<br>
+• 31B：<code>google/gemma-4-31B-it/blob/main/config.json</code>
+</div>
+</div>
+</div>
+
+<script>
+function sw(id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
