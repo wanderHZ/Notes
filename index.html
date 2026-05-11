@@ -166,34 +166,26 @@
     };
 
     // 初始化获取数据
-    fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${BRANCH}?recursive=1`)
-        .then(response => response.json())
-        .then(data => {
-            loading.style.display = 'none';
-            if (!data.tree) {
-                gallery.innerHTML = '<p style="color:red;">读取失败，请检查用户名/仓库名配置是否正确。</p>';
-                return;
-            }
-
-            // 过滤 HTML 并提取结构
-            allFiles = data.tree
-                .filter(item => item.path.endsWith('.html') && item.path !== 'index.html')
-                .map(file => {
-                    const parts = file.path.split('/');
-                    return {
-                        rawPath: file.path,
-                        folder: parts.length === 1 ? '根目录 (未分类)' : parts[0],
-                        fileName: parts[parts.length - 1].replace('.html', ''),
-                        searchString: file.path.toLowerCase()
-                    };
-                });
-
-            renderGallery(allFiles);
-        })
-        .catch(err => {
-            loading.innerText = '网络异常或 API 限制，请稍后刷新重试。';
+    fetch('./files.json')
+      .then(res => res.json())
+      .then(data => {
+        loading.style.display = 'none';
+    
+        allFiles = data.map(path => {
+            const parts = path.split('/');
+            return {
+                rawPath: path,
+                folder: parts.length === 1 ? '根目录 (未分类)' : parts[0],
+                fileName: parts[parts.length - 1].replace('.html', ''),
+                searchString: path.toLowerCase()
+            };
         });
-
+    
+        renderGallery(allFiles);
+      })
+      .catch(() => {
+        loading.innerText = '读取 files.json 失败';
+      });
     // 搜索实时过滤逻辑
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
