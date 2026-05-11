@@ -1,37 +1,37 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT_DIR = path.join(__dirname, '..');
+const ROOT = path.join(__dirname, '..');
 
-// 递归扫描
-function walk(dir, fileList = []) {
-    const files = fs.readdirSync(dir);
+function walk(dir, list = []) {
+  const files = fs.readdirSync(dir);
 
-    files.forEach(file => {
-        const fullPath = path.join(dir, file);
-        const relPath = path.relative(ROOT_DIR, fullPath);
+  for (const file of files) {
+    const full = path.join(dir, file);
+    const rel = path.relative(ROOT, full);
 
-        if (file.startsWith('.')) return; // 忽略隐藏文件
-        if (relPath.includes('node_modules')) return;
+    // 忽略
+    if (rel.startsWith('.')) continue;
+    if (rel.includes('node_modules')) continue;
+    if (rel.includes('.git')) continue;
 
-        const stat = fs.statSync(fullPath);
+    const stat = fs.statSync(full);
 
-        if (stat.isDirectory()) {
-            walk(fullPath, fileList);
-        } else if (file.endsWith('.html') && file !== 'index.html') {
-            fileList.push(relPath.replace(/\\/g, '/'));
-        }
-    });
+    if (stat.isDirectory()) {
+      walk(full, list);
+    } else if (file.endsWith('.html') && file !== 'index.html') {
+      list.push(rel.replace(/\\/g, '/'));
+    }
+  }
 
-    return fileList;
+  return list;
 }
 
-// 生成 JSON
-const files = walk(ROOT_DIR);
+const result = walk(ROOT);
 
 fs.writeFileSync(
-    path.join(ROOT_DIR, 'files.json'),
-    JSON.stringify(files, null, 2)
+  path.join(ROOT, 'files.json'),
+  JSON.stringify(result, null, 2)
 );
 
-console.log('✅ files.json generated!');
+console.log('✅ files.json updated');
