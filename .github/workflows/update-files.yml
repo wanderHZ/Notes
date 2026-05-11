@@ -23,15 +23,15 @@ jobs:
         run: node scripts/generate-files.js
 
       - name: 📤 Commit & Push if changed
-      run: |
-        git config user.name "github-actions"
-        git config user.email "actions@github.com"
-    
-        git add files.json   # ⭐ 关键：先 add！
-    
-        if git diff --cached --quiet; then
-          echo "No changes"
-        else
-          git commit -m "auto: update files.json"
-          git push
-        fi
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+      
+          git add files.json   # ⭐ 关键：先 add！
+      
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "auto: update files.json"
+            git push
+          fi
