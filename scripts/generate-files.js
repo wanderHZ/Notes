@@ -1,37 +1,27 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.join(__dirname, '..');
+function walk(dir) {
+  let results = [];
+  const list = fs.readdirSync(dir);
 
-function walk(dir, list = []) {
-  const files = fs.readdirSync(dir);
-
-  for (const file of files) {
-    const full = path.join(dir, file);
-    const rel = path.relative(ROOT, full);
-
-    // 忽略
-    if (rel.startsWith('.')) continue;
-    if (rel.includes('node_modules')) continue;
-    if (rel.includes('.git')) continue;
-
-    const stat = fs.statSync(full);
+  list.forEach(file => {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
 
     if (stat.isDirectory()) {
-      walk(full, list);
+      results = results.concat(walk(fullPath));
     } else if (file.endsWith('.html') && file !== 'index.html') {
-      list.push(rel.replace(/\\/g, '/'));
+      // ⭐ 关键：转成相对路径
+      results.push(path.relative(process.cwd(), fullPath).replace(/\\/g, '/'));
     }
-  }
+  });
 
-  return list;
+  return results;
 }
 
-const result = walk(ROOT);
+const files = walk(process.cwd());
 
-fs.writeFileSync(
-  path.join(ROOT, 'files.json'),
-  JSON.stringify(result, null, 2)
-);
+console.log("FOUND FILES:", files);
 
-console.log('✅ files.json updated');
+fs.writeFileSync('files.json', JSON.stringify(files, null, 2));
