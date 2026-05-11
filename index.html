@@ -1,250 +1,254 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的实验室 | 创意代码库</title>
-    <style>
-        :root {
-            --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --border: #e5e7eb;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的笔记</title>
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-        }
+<style>
+:root {
+    --bg-color: #f3f4f6;
+    --card-bg: #ffffff;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --primary: #3b82f6;
+    --border: #e5e7eb;
+}
 
-        /* 顶部通栏 Header */
-        .hero {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 60px 20px;
-            text-align: center;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    background: var(--bg-color);
+}
 
-        .hero h1 { margin: 0 0 15px 0; font-size: 2.5rem; font-weight: 800; letter-spacing: -0.025em; }
-        .hero p { margin: 0; font-size: 1.1rem; opacity: 0.9; font-weight: 300; }
+/* header */
+.hero {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    padding: 40px;
+    text-align: center;
+}
 
-        /* 搜索框 */
-        .search-container {
-            max-width: 600px;
-            margin: -24px auto 40px auto;
-            padding: 0 20px;
-            position: relative;
-        }
-        .search-input {
-            width: 100%; box-sizing: border-box;
-            padding: 16px 24px 16px 50px;
-            font-size: 16px; border: none;
-            border-radius: 9999px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            outline: none; transition: box-shadow 0.2s ease;
-        }
-        .search-input:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
-        .search-icon {
-            position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
-            width: 20px; height: 20px; color: #9ca3af;
-        }
+/* layout */
+.layout {
+    display: flex;
+    max-width: 1200px;
+    margin: 20px auto;
+    gap: 20px;
+}
 
-        /* 主体内容区 */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 60px 20px; }
+/* sidebar */
+#sidebar {
+    width: 260px;
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    height: 80vh;
+    overflow-y: auto;
+}
 
-        /* 文件夹网格布局 */
-        #gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 24px;
-            align-items: start;
-        }
+/* tree */
+.tree-item {
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+}
 
-        /* 文件夹卡片 */
-        .folder-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-            border: 1px solid var(--border);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .folder-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
-        }
+.tree-item:hover {
+    background: #f3f4f6;
+}
 
-        /* 文件夹头部标题 */
-        .folder-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 20px; padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        .folder-title {
-            margin: 0; font-size: 1.25rem; font-weight: 600;
-            display: flex; align-items: center; gap: 8px; color: #111827;
-        }
-        .folder-title svg { width: 22px; height: 22px; color: #fbbf24; }
-        .file-count {
-            background: #f3f4f6; color: var(--text-muted);
-            padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 500;
-        }
+.tree-folder {
+    font-weight: 600;
+}
 
-        /* 文件列表 */
-        .file-list { display: flex; flex-direction: column; gap: 10px; }
-        
-        /* 单个文件项 */
-        .file-item {
-            display: flex; align-items: center; gap: 10px;
-            padding: 12px 14px;
-            background: #f9fafb; border-radius: 10px;
-            text-decoration: none; color: #374151; font-weight: 500; font-size: 0.95rem;
-            transition: all 0.2s ease; border: 1px solid transparent;
-        }
-        .file-item:hover {
-            background: #eff6ff; color: var(--primary-hover);
-            border-color: #bfdbfe; transform: translateX(4px);
-        }
-        .file-item svg { width: 18px; height: 18px; color: #9ca3af; transition: color 0.2s; }
-        .file-item:hover svg { color: var(--primary); }
+.tree-children {
+    margin-left: 14px;
+    display: none;
+}
 
-        #loading, #empty-state { text-align: center; color: var(--text-muted); font-size: 1.1rem; margin-top: 40px; }
-        
-        /* 动态高亮文字 */
-        .highlight { background-color: #fef08a; padding: 0 2px; border-radius: 3px; }
-    </style>
+.tree-item.open > .tree-children {
+    display: block;
+}
+
+/* content */
+.content {
+    flex: 1;
+}
+
+#gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+/* card */
+.card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    background: #eff6ff;
+}
+
+.search {
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.search input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 999px;
+    border: none;
+    outline: none;
+}
+
+</style>
 </head>
+
 <body>
 
-    <header class="hero">
-        <h1>✨ 我的笔记</h1>
-        <p>由 AI 生成的 HTML 代码与灵感图鉴</p>
-    </header>
+<header class="hero">
+    <h1>📚 我的笔记</h1>
+</header>
 
-    <div class="search-container">
-        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="搜索组件或文件夹名称...">
-    </div>
+<div class="search">
+    <input id="searchInput" placeholder="搜索..." />
+</div>
 
-    <main class="container">
-        <div id="loading">正在连接 GitHub 扫描文件仓库... 🚀</div>
+<div class="layout">
+    <aside id="sidebar"></aside>
+
+    <div class="content">
+        <div id="loading">加载中...</div>
         <div id="gallery"></div>
-        <div id="empty-state" style="display: none;">没有找到匹配的文件 😢</div>
-    </main>
+    </div>
+</div>
 
 <script>
-    // ==========================================
-    // ⚠️ 必填配置区
-    // ==========================================
-    const GITHUB_USER = 'wanderHZ'; 
-    const GITHUB_REPO = 'Notes';
-    const BRANCH = 'main'; 
 
-    const pageUrl = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/`;
-    
-    // DOM 元素
-    const gallery = document.getElementById('gallery');
-    const loading = document.getElementById('loading');
-    const emptyState = document.getElementById('empty-state');
-    const searchInput = document.getElementById('searchInput');
+const GITHUB_USER = 'wanderHZ';
+const GITHUB_REPO = 'Notes';
+const pageUrl = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/`;
 
-    // 全局数据存储
-    let allFiles = [];
+let allFiles = [];
 
-    // SVG 图标集
-    const icons = {
-        folder: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>`,
-        file: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>`
-    };
+/* ===================== 加载数据 ===================== */
+fetch('./files.json?v=' + Date.now())
+.then(res => res.json())
+.then(data => {
+    document.getElementById('loading').style.display = 'none';
 
-    // 初始化获取数据
-    fetch('./files.json')
-      .then(res => res.json())
-      .then(data => {
-        loading.style.display = 'none';
-    
-        allFiles = data.map(path => {
-            const parts = path.split('/');
-            return {
-                rawPath: path,
-                folder: parts.length === 1 ? '根目录 (未分类)' : parts[0],
-                fileName: parts[parts.length - 1].replace('.html', ''),
-                searchString: path.toLowerCase()
-            };
-        });
-    
-        renderGallery(allFiles);
-      })
-      .catch(() => {
-        loading.innerText = '读取 files.json 失败';
-      });
-    // 搜索实时过滤逻辑
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        if (!query) {
-            renderGallery(allFiles);
-            return;
-        }
-
-        const filtered = allFiles.filter(f => f.searchString.includes(query));
-        renderGallery(filtered, query);
+    allFiles = data.map(path => {
+        const parts = path.split('/');
+        return {
+            rawPath: path,
+            fileName: parts.pop().replace('.html',''),
+            folder: parts.join('/'),
+            search: path.toLowerCase()
+        };
     });
 
-    // 核心渲染函数
-    function renderGallery(filesToRender, highlightQuery = '') {
-        gallery.innerHTML = '';
-        
-        if (filesToRender.length === 0) {
-            emptyState.style.display = 'block';
-            return;
-        } else {
-            emptyState.style.display = 'none';
-        }
+    renderGallery(allFiles);
+    renderSidebar(allFiles);
+});
 
-        // 按文件夹重组数据
-        const categories = {};
-        filesToRender.forEach(file => {
-            if (!categories[file.folder]) categories[file.folder] = [];
-            categories[file.folder].push(file);
+/* ===================== 右侧卡片 ===================== */
+function renderGallery(files) {
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+
+    files.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerText = f.fileName;
+
+        card.onclick = () => {
+            window.open(pageUrl + f.rawPath);
+        };
+
+        gallery.appendChild(card);
+    });
+}
+
+/* ===================== 构建树 ===================== */
+function buildTree(files) {
+    const root = {};
+
+    files.forEach(f => {
+        const parts = f.rawPath.split('/');
+        let cur = root;
+
+        parts.forEach((p, i) => {
+            if (!cur[p]) {
+                cur[p] = (i === parts.length - 1) ? null : {};
+            }
+            cur = cur[p];
         });
+    });
 
-        // 渲染 DOM
-        for (const [folder, files] of Object.entries(categories)) {
-            const card = document.createElement('div');
-            card.className = 'folder-card';
-            
-            // 匹配并高亮文本的辅助函数
-            const highlightText = (text) => {
-                if (!highlightQuery) return text;
-                const regex = new RegExp(`(${highlightQuery})`, 'gi');
-                return text.replace(regex, '<span class="highlight">$1</span>');
+    return root;
+}
+
+/* ===================== 渲染树 ===================== */
+function renderTree(tree, container, base='') {
+    Object.entries(tree).forEach(([name, val]) => {
+        const item = document.createElement('div');
+        item.className = 'tree-item';
+
+        if (val === null) {
+            item.innerText = '📄 ' + name.replace('.html','');
+            item.onclick = () => {
+                window.open(pageUrl + base + name);
+            };
+        } else {
+            item.classList.add('tree-folder');
+            item.innerText = '📁 ' + name;
+
+            const children = document.createElement('div');
+            children.className = 'tree-children';
+
+            renderTree(val, children, base + name + '/');
+
+            item.onclick = (e) => {
+                if (e.target === item) {
+                    item.classList.toggle('open');
+                }
             };
 
-            card.innerHTML = `
-                <div class="folder-header">
-                    <h3 class="folder-title">${icons.folder} ${highlightText(folder)}</h3>
-                    <span class="file-count">${files.length} 个项目</span>
-                </div>
-                <div class="file-list">
-                    ${files.map(f => `
-                        <a href="${pageUrl}${f.rawPath}" target="_blank" class="file-item">
-                            ${icons.file}
-                            <span>${highlightText(f.fileName)}</span>
-                        </a>
-                    `).join('')}
-                </div>
-            `;
-            gallery.appendChild(card);
+            item.appendChild(children);
         }
-    }
+
+        container.appendChild(item);
+    });
+}
+
+/* ===================== 左侧目录 ===================== */
+function renderSidebar(files) {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.innerHTML = '';
+
+    const tree = buildTree(files);
+    renderTree(tree, sidebar);
+}
+
+/* ===================== 搜索 ===================== */
+document.getElementById('searchInput').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+
+    const filtered = allFiles.filter(f => f.search.includes(q));
+    renderGallery(filtered);
+});
+
 </script>
 
 </body>
