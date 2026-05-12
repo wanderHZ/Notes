@@ -1,365 +1,593 @@
-
-<h2 class="sr-only">RL for LLM 学习大纲 — 系统学习路线图</h2>
-
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RL for LLM 系统学习大纲</title>
 <style>
-:root { --gap: 12px; }
-.roadmap { padding: 1rem 0; }
-.phase-header {
-  display: flex; align-items: center; gap: 10px;
-  margin: 1.5rem 0 0.75rem;
-}
-.phase-badge {
-  font-size: 11px; font-weight: 500; padding: 3px 10px;
-  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-}
-.phase-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
-.phase-desc { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 0.75rem; }
-.modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--gap); margin-bottom: 0.5rem; }
-.module-card {
-  background: var(--color-background-primary);
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg);
-  padding: 0.9rem 1rem;
-}
-.module-card:hover { border-color: var(--color-border-secondary); }
-.module-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.module-icon { font-size: 18px; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.module-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; }
-.module-items { list-style: none; margin: 0; padding: 0; }
-.module-items li { font-size: 12px; color: var(--color-text-secondary); padding: 2px 0; display: flex; align-items: flex-start; gap: 5px; line-height: 1.4; }
-.module-items li::before { content: '·'; color: var(--color-text-tertiary); flex-shrink: 0; margin-top: 1px; }
-.tag {
-  display: inline-block; font-size: 10px; font-weight: 500;
-  padding: 2px 7px; border-radius: 10px; margin: 6px 3px 0 0;
-}
-.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.5rem 0 0; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 1rem 0 0; }
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--color-text-secondary); }
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-.phase1-badge { background: #EEEDFE; color: #3C3489; }
-.phase2-badge { background: #E1F5EE; color: #085041; }
-.phase3-badge { background: #FAEEDA; color: #633806; }
-.phase4-badge { background: #E6F1FB; color: #0C447C; }
-.phase5-badge { background: #FAECE7; color: #712B13; }
-
-.icon-p1 { background: #EEEDFE; color: #534AB7; }
-.icon-p2 { background: #E1F5EE; color: #0F6E56; }
-.icon-p3 { background: #FAEEDA; color: #854F0B; }
-.icon-p4 { background: #E6F1FB; color: #185FA5; }
-.icon-p5 { background: #FAECE7; color: #993C1D; }
-
-.tag-paper { background: #EEEDFE; color: #3C3489; }
-.tag-code { background: #E1F5EE; color: #085041; }
-.tag-sys { background: #FAEEDA; color: #633806; }
-.tag-adv { background: #FAECE7; color: #712B13; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #f5f5f0;
+    color: #1a1a1a;
+    padding: 32px 24px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+ 
+  /* Header */
+  .page-header {
+    margin-bottom: 36px;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 20px;
+  }
+  .page-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #1a1a1a;
+  }
+  .page-header p {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #666;
+  }
+ 
+  /* Phase block */
+  .phase {
+    margin-bottom: 36px;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .phase-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 11px;
+    border-radius: 20px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .phase-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .phase-desc {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 14px;
+    padding-left: 2px;
+  }
+ 
+  /* Cards grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: #ffffff;
+    border: 1.5px solid #d8d8d8;
+    border-radius: 10px;
+    padding: 14px 15px;
+  }
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 10px;
+  }
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .card-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.3;
+  }
+  .card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .card ul li {
+    font-size: 12px;
+    color: #555;
+    padding: 2.5px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    line-height: 1.45;
+  }
+  .card ul li::before {
+    content: '·';
+    color: #aaa;
+    flex-shrink: 0;
+  }
+  .tags {
+    margin-top: 9px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tag {
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+ 
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 8px 0 32px;
+  }
+ 
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid #ddd;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+ 
+  /* ── Phase color schemes ── */
+  /* Phase 1 – Purple */
+  .badge-p1 { background: #ede9fb; color: #4a3aaa; }
+  .icon-p1  { background: #ede9fb; color: #4a3aaa; }
+  /* Phase 2 – Green */
+  .badge-p2 { background: #ddf2e8; color: #0d5e40; }
+  .icon-p2  { background: #ddf2e8; color: #0d5e40; }
+  /* Phase 3 – Amber */
+  .badge-p3 { background: #fdefd4; color: #7a4500; }
+  .icon-p3  { background: #fdefd4; color: #7a4500; }
+  /* Phase 4 – Blue */
+  .badge-p4 { background: #dceefa; color: #0a4480; }
+  .icon-p4  { background: #dceefa; color: #0a4480; }
+  /* Phase 5 – Red */
+  .badge-p5 { background: #fce8e2; color: #7a2510; }
+  .icon-p5  { background: #fce8e2; color: #7a2510; }
+ 
+  /* ── Tag color schemes ── */
+  .tag-theory { background: #ede9fb; color: #4a3aaa; }
+  .tag-core   { background: #ddf2e8; color: #0d5e40; }
+  .tag-sys    { background: #fdefd4; color: #7a4500; }
+  .tag-adv    { background: #fce8e2; color: #7a2510; }
+  .tag-code   { background: #dceefa; color: #0a4480; }
 </style>
-
-<div class="roadmap">
-
-<div class="phase-header">
-  <span class="phase-badge phase1-badge">阶段一</span>
-  <span class="phase-title">RL 基础与 LLM 后训练背景</span>
+</head>
+<body>
+<div class="page">
+ 
+  <div class="page-header">
+    <h1>RL for LLM 系统学习大纲</h1>
+    <p>涵盖核心算法（PPO / DPO / GRPO / DAPO）· Reward 建模 · RL Infra 与 Rollout 加速 · 前沿专题</p>
+  </div>
+ 
+  <!-- ===== Phase 1 ===== -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-p1">阶段一</span>
+      <span class="phase-title">RL 基础与 LLM 后训练背景</span>
+    </div>
+    <p class="phase-desc">建立强化学习理论基础，理解 LLM 对齐的问题定义与 RLHF 标准范式</p>
+    <div class="cards">
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p1">📐</div>
+          <div class="card-name">RL 核心概念</div>
+        </div>
+        <ul>
+          <li>MDP：状态、动作、奖励、策略</li>
+          <li>Policy Gradient 定理</li>
+          <li>REINFORCE 算法原理</li>
+          <li>Advantage 估计（GAE）</li>
+          <li>KL 散度与熵正则化</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-theory">理论</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p1">👥</div>
+          <div class="card-name">RLHF 标准范式</div>
+        </div>
+        <ul>
+          <li>LLM 对齐问题定义</li>
+          <li>Reward Model 训练（Bradley-Terry）</li>
+          <li>InstructGPT / ChatGPT 流程</li>
+          <li>四模型架构（Policy / Ref / Reward / Value）</li>
+          <li>分布偏移与 Reward Hacking</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-theory">经典论文</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p1">🔢</div>
+          <div class="card-name">LLM-MDP 建模</div>
+        </div>
+        <ul>
+          <li>Token 级 MDP 形式化</li>
+          <li>确定性转移的特殊性</li>
+          <li>Sequence-level vs Token-level reward</li>
+          <li>Online vs Offline 数据收集</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-theory">理论</span>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+  <hr class="divider">
+ 
+  <!-- ===== Phase 2 ===== -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-p2">阶段二</span>
+      <span class="phase-title">核心算法：从 PPO 到新一代优化器</span>
+    </div>
+    <p class="phase-desc">系统学习 PPO、DPO、GRPO 等算法原理，掌握算法演进脉络</p>
+    <div class="cards">
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p2">🤖</div>
+          <div class="card-name">PPO 深度解析</div>
+        </div>
+        <ul>
+          <li>Clipped Surrogate Objective</li>
+          <li>Value Function 与 Critic 训练</li>
+          <li>GAE 优势估计实现</li>
+          <li>PPO 超参调优技巧</li>
+          <li>PPO 在 RLHF 中的工程挑战</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-core">必学</span>
+          <span class="tag tag-code">代码</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p2">⇄</div>
+          <div class="card-name">DPO 系列</div>
+        </div>
+        <ul>
+          <li>DPO 推导：从 RL 目标到监督学习</li>
+          <li>Implicit Reward 概念</li>
+          <li>IPO / SliC / KTO 变体</li>
+          <li>Offline vs Online DPO</li>
+          <li>DPO 的局限性分析</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-core">必学</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p2">⊞</div>
+          <div class="card-name">GRPO 及无 Critic 方法</div>
+        </div>
+        <ul>
+          <li>GRPO：Group 相对优势估计</li>
+          <li>RLOO（Leave-One-Out 基线）</li>
+          <li>ReMax / REINFORCE++</li>
+          <li>无 Value Model 的权衡</li>
+          <li>DeepSeek-R1 中的 GRPO 实践</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-core">必学</span>
+          <span class="tag tag-code">代码</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p2">📈</div>
+          <div class="card-name">前沿算法</div>
+        </div>
+        <ul>
+          <li>DAPO：四大稳定性技术</li>
+          <li>GSPO：Sequence-level 优化</li>
+          <li>Dr. GRPO：统一理论框架</li>
+          <li>PRIME：过程奖励隐式建模</li>
+          <li>TIC-GRPO：理论收敛保证</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-adv">进阶</span>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+  <hr class="divider">
+ 
+  <!-- ===== Phase 3 ===== -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-p3">阶段三</span>
+      <span class="phase-title">Reward 建模与优化策略</span>
+    </div>
+    <p class="phase-desc">奖励设计是 RL 成败的关键，掌握 ORM / PRM 建模、Reward Hacking 防范与 RLVR 范式</p>
+    <div class="cards">
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p3">🎯</div>
+          <div class="card-name">Reward Model 体系</div>
+        </div>
+        <ul>
+          <li>Outcome Reward Model（ORM）</li>
+          <li>Process Reward Model（PRM）</li>
+          <li>Verifiable Reward（RLVR）范式</li>
+          <li>LLM-as-a-Judge 方法</li>
+          <li>Reward Model 过优化分析</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-core">必学</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p3">🛡</div>
+          <div class="card-name">Reward Hacking 对抗</div>
+        </div>
+        <ul>
+          <li>KL 惩罚的作用与局限</li>
+          <li>Reward Shaping 系统性方法</li>
+          <li>梯度正则化（GR）</li>
+          <li>长度惩罚与冗余抑制</li>
+          <li>熵坍塌（Entropy Collapse）问题</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-adv">进阶</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p3">🔬</div>
+          <div class="card-name">探索策略</div>
+        </div>
+        <ul>
+          <li>Forward KL vs Reverse KL</li>
+          <li>温度采样与 Diversity 激励</li>
+          <li>Dynamic Sampling（DAPO）</li>
+          <li>Clip-Higher 技巧</li>
+          <li>RAPO：分布外探索</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-adv">进阶</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p3">🧠</div>
+          <div class="card-name">训练稳定性技巧</div>
+        </div>
+        <ul>
+          <li>优势归一化策略</li>
+          <li>Token-level vs Sequence-level 梯度</li>
+          <li>Overlong Reward Shaping</li>
+          <li>Reference Policy 更新策略</li>
+          <li>Multi-reward 联合优化</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-sys">工程</span>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+  <hr class="divider">
+ 
+  <!-- ===== Phase 4 ===== -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-p4">阶段四</span>
+      <span class="phase-title">RL Infra：Rollout 加速与系统架构</span>
+    </div>
+    <p class="phase-desc">理解工业级 RL 训练框架设计，掌握 Rollout 瓶颈优化与异步训练技术</p>
+    <div class="cards">
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p4">🏗</div>
+          <div class="card-name">主流框架解析</div>
+        </div>
+        <ul>
+          <li>veRL / HybridFlow 架构</li>
+          <li>OpenRLHF：Ray + vLLM 设计</li>
+          <li>ROLL（阿里）多角色分布式</li>
+          <li>框架对比：资源分配策略</li>
+          <li>单控制器 vs 分布式控制</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-code">源码</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p4">🚀</div>
+          <div class="card-name">Rollout 加速技术</div>
+        </div>
+        <ul>
+          <li>vLLM PagedAttention 原理</li>
+          <li>SGLang RadixAttention</li>
+          <li>Continuous Batching</li>
+          <li>推测解码（Speculative Decoding）</li>
+          <li>长尾响应的 Length-Aware 调度</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-sys">系统</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p4">🔄</div>
+          <div class="card-name">训推一致性</div>
+        </div>
+        <ul>
+          <li>Weight Sync 机制（NCCL / IPC）</li>
+          <li>RDMA 跨机权重传输</li>
+          <li>3D-HybridEngine 并行切换</li>
+          <li>Co-located vs Disaggregated 模式</li>
+          <li>并行度重映射（TP / PP → DP）</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-sys">系统</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p4">📊</div>
+          <div class="card-name">异步 RL 训练</div>
+        </div>
+        <ul>
+          <li>Sync vs Async Rollout 对比</li>
+          <li>Off-policy Drift 问题</li>
+          <li>AReaL / ROLL Flash 异步设计</li>
+          <li>资源 Bubble 优化</li>
+          <li>异步场景下的算法适配</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-adv">进阶</span>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+  <hr class="divider">
+ 
+  <!-- ===== Phase 5 ===== -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-p5">阶段五</span>
+      <span class="phase-title">前沿专题与工程实践</span>
+    </div>
+    <p class="phase-desc">Agentic RL、多模态 RL 及端到端复现实践</p>
+    <div class="cards">
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p5">🕸</div>
+          <div class="card-name">Agentic RL</div>
+        </div>
+        <ul>
+          <li>多轮 Rollout 轨迹建模</li>
+          <li>环境交互与工具调用</li>
+          <li>Rollout-as-a-Service 设计</li>
+          <li>GiGPO 步骤级学习</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-adv">进阶</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p5">🖼</div>
+          <div class="card-name">多模态 RL</div>
+        </div>
+        <ul>
+          <li>VLM 的 RL 后训练</li>
+          <li>视觉奖励建模</li>
+          <li>Kimi-VL / Qwen2.5-VL 实践</li>
+          <li>多模态 GRPO 适配</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-adv">进阶</span>
+        </div>
+      </div>
+ 
+      <div class="card">
+        <div class="card-top">
+          <div class="card-icon icon-p5">💻</div>
+          <div class="card-name">工程复现实践</div>
+        </div>
+        <ul>
+          <li>DeepSeek-R1-Zero 复现</li>
+          <li>基于 veRL 实现 GRPO / DAPO</li>
+          <li>自定义 Reward Function</li>
+          <li>实验追踪与调试技巧</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-code">动手</span>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#4a3aaa;"></div>
+      <span>理论 / 论文</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#0d5e40;"></div>
+      <span>必学核心</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#7a4500;"></div>
+      <span>系统 / 工程</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#7a2510;"></div>
+      <span>进阶专题</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#0a4480;"></div>
+      <span>代码实现</span>
+    </div>
+  </div>
+ 
 </div>
-<p class="phase-desc">建立强化学习理论基础，理解 LLM 对齐的问题定义与 RLHF 标准范式</p>
-<div class="modules">
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p1"><i class="ti ti-school" aria-hidden="true"></i></div>
-      <div class="module-name">RL 核心概念</div>
-    </div>
-    <ul class="module-items">
-      <li>MDP：状态、动作、奖励、策略</li>
-      <li>Policy Gradient 定理</li>
-      <li>REINFORCE 算法</li>
-      <li>Advantage 估计（GAE）</li>
-      <li>KL 散度与熵正则化</li>
-    </ul>
-    <span class="tag tag-paper">理论</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p1"><i class="ti ti-users" aria-hidden="true"></i></div>
-      <div class="module-name">RLHF 标准范式</div>
-    </div>
-    <ul class="module-items">
-      <li>LLM 对齐问题定义</li>
-      <li>Reward Model 训练（Bradley-Terry）</li>
-      <li>InstructGPT / ChatGPT 流程</li>
-      <li>四模型架构（Policy/Ref/Reward/Value）</li>
-      <li>分布偏移与 Reward Hacking</li>
-    </ul>
-    <span class="tag tag-paper">经典论文</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p1"><i class="ti ti-chart-line" aria-hidden="true"></i></div>
-      <div class="module-name">LLM-MDP 建模</div>
-    </div>
-    <ul class="module-items">
-      <li>Token 级 MDP 形式化</li>
-      <li>确定性转移的特殊性</li>
-      <li>Sequence-level vs Token-level reward</li>
-      <li>Online vs Offline 数据收集</li>
-    </ul>
-    <span class="tag tag-paper">理论</span>
-  </div>
-</div>
-
-<hr class="divider">
-
-<div class="phase-header">
-  <span class="phase-badge phase2-badge">阶段二</span>
-  <span class="phase-title">核心算法：从 PPO 到新一代优化器</span>
-</div>
-<p class="phase-desc">系统学习 PPO、DPO、GRPO 等算法原理，掌握算法演进脉络</p>
-<div class="modules">
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p2"><i class="ti ti-robot" aria-hidden="true"></i></div>
-      <div class="module-name">PPO 深度解析</div>
-    </div>
-    <ul class="module-items">
-      <li>Clipped Surrogate Objective</li>
-      <li>Value Function 与 Critic 训练</li>
-      <li>GAE 优势估计实现</li>
-      <li>PPO 超参调优技巧</li>
-      <li>PPO 在 RLHF 中的工程挑战</li>
-    </ul>
-    <span class="tag tag-paper">必学</span><span class="tag tag-code">代码</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p2"><i class="ti ti-arrows-exchange" aria-hidden="true"></i></div>
-      <div class="module-name">DPO 系列</div>
-    </div>
-    <ul class="module-items">
-      <li>DPO 推导：从 RL 目标到监督学习</li>
-      <li>Implicit Reward 概念</li>
-      <li>IPO / SliC / KTO 变体</li>
-      <li>Offline vs Online DPO</li>
-      <li>DPO 的局限性分析</li>
-    </ul>
-    <span class="tag tag-paper">必学</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p2"><i class="ti ti-category" aria-hidden="true"></i></div>
-      <div class="module-name">GRPO 及无 Critic 方法</div>
-    </div>
-    <ul class="module-items">
-      <li>GRPO：Group 相对优势估计</li>
-      <li>RLOO（Leave-One-Out 基线）</li>
-      <li>ReMax / REINFORCE++</li>
-      <li>无 Value Model 的权衡</li>
-      <li>DeepSeek-R1 中的 GRPO 实践</li>
-    </ul>
-    <span class="tag tag-paper">必学</span><span class="tag tag-code">代码</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p2"><i class="ti ti-trending-up" aria-hidden="true"></i></div>
-      <div class="module-name">前沿算法</div>
-    </div>
-    <ul class="module-items">
-      <li>DAPO：四大稳定性技术</li>
-      <li>GSPO：Sequence-level 优化</li>
-      <li>Dr. GRPO：统一理论框架</li>
-      <li>PRIME：过程奖励隐式建模</li>
-      <li>TIC-GRPO：理论收敛保证</li>
-    </ul>
-    <span class="tag tag-adv">进阶</span>
-  </div>
-</div>
-
-<hr class="divider">
-
-<div class="phase-header">
-  <span class="phase-badge phase3-badge">阶段三</span>
-  <span class="phase-title">Reward 建模与优化策略</span>
-</div>
-<p class="phase-desc">奖励设计是 RL 成败的关键，掌握 ORM/PRM 建模、Reward Hacking 防范与 RLVR 范式</p>
-<div class="modules">
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p3"><i class="ti ti-target" aria-hidden="true"></i></div>
-      <div class="module-name">Reward Model 体系</div>
-    </div>
-    <ul class="module-items">
-      <li>Outcome Reward Model（ORM）</li>
-      <li>Process Reward Model（PRM）</li>
-      <li>Verifiable Reward（RLVR）范式</li>
-      <li>LLM-as-a-Judge 方法</li>
-      <li>Reward Model 过优化分析</li>
-    </ul>
-    <span class="tag tag-paper">必学</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p3"><i class="ti ti-shield" aria-hidden="true"></i></div>
-      <div class="module-name">Reward Hacking 对抗</div>
-    </div>
-    <ul class="module-items">
-      <li>KL 惩罚的作用与局限</li>
-      <li>Reward Shaping 系统性方法</li>
-      <li>梯度正则化（GR）</li>
-      <li>长度惩罚与冗余抑制</li>
-      <li>熵坍塌（Entropy Collapse）问题</li>
-    </ul>
-    <span class="tag tag-adv">进阶</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p3"><i class="ti ti-flask" aria-hidden="true"></i></div>
-      <div class="module-name">探索策略</div>
-    </div>
-    <ul class="module-items">
-      <li>Forward KL vs Reverse KL</li>
-      <li>温度采样与 Diversity 激励</li>
-      <li>Dynamic Sampling（DAPO）</li>
-      <li>Clip-Higher 技巧</li>
-      <li>RAPO：分布外探索</li>
-    </ul>
-    <span class="tag tag-adv">进阶</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p3"><i class="ti ti-brain" aria-hidden="true"></i></div>
-      <div class="module-name">训练稳定性技巧</div>
-    </div>
-    <ul class="module-items">
-      <li>优势归一化策略</li>
-      <li>Token-level vs Sequence-level 梯度</li>
-      <li>Overlong Reward Shaping</li>
-      <li>Reference Policy 更新策略</li>
-      <li>Multi-reward 联合优化</li>
-    </ul>
-    <span class="tag tag-sys">工程</span>
-  </div>
-</div>
-
-<hr class="divider">
-
-<div class="phase-header">
-  <span class="phase-badge phase4-badge">阶段四</span>
-  <span class="phase-title">RL Infra：Rollout 加速与系统架构</span>
-</div>
-<p class="phase-desc">理解工业级 RL 训练框架设计，掌握 Rollout 瓶颈优化与异步训练技术</p>
-<div class="modules">
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p4"><i class="ti ti-building-factory" aria-hidden="true"></i></div>
-      <div class="module-name">主流框架解析</div>
-    </div>
-    <ul class="module-items">
-      <li>veRL / HybridFlow 架构</li>
-      <li>OpenRLHF：Ray + vLLM 设计</li>
-      <li>ROLL（阿里）多角色分布式</li>
-      <li>框架对比：资源分配策略</li>
-      <li>单控制器 vs 分布式控制</li>
-    </ul>
-    <span class="tag tag-code">源码</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p4"><i class="ti ti-rocket" aria-hidden="true"></i></div>
-      <div class="module-name">Rollout 加速技术</div>
-    </div>
-    <ul class="module-items">
-      <li>vLLM PagedAttention 原理</li>
-      <li>SGLang RadixAttention</li>
-      <li>Continuous Batching</li>
-      <li>推测解码（Speculative Decoding）</li>
-      <li>长尾响应的 Length-Aware 调度</li>
-    </ul>
-    <span class="tag tag-sys">系统</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p4"><i class="ti ti-refresh" aria-hidden="true"></i></div>
-      <div class="module-name">训推一致性</div>
-    </div>
-    <ul class="module-items">
-      <li>Weight Sync 机制（NCCL/IPC）</li>
-      <li>RDMA 跨机权重传输</li>
-      <li>3D-HybridEngine 并行切换</li>
-      <li>Co-located vs Disaggregated 模式</li>
-      <li>并行度重映射（TP/PP → DP）</li>
-    </ul>
-    <span class="tag tag-sys">系统</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p4"><i class="ti ti-activity" aria-hidden="true"></i></div>
-      <div class="module-name">异步 RL 训练</div>
-    </div>
-    <ul class="module-items">
-      <li>Sync vs Async Rollout 对比</li>
-      <li>Off-policy Drift 问题</li>
-      <li>AReaL / ROLL Flash 异步设计</li>
-      <li>资源 Bubble 优化</li>
-      <li>异步场景下的算法适配</li>
-    </ul>
-    <span class="tag tag-adv">进阶</span>
-  </div>
-</div>
-
-<hr class="divider">
-
-<div class="phase-header">
-  <span class="phase-badge phase5-badge">阶段五</span>
-  <span class="phase-title">前沿专题与工程实践</span>
-</div>
-<p class="phase-desc">Agentic RL、多模态 RL 及端到端复现实践</p>
-<div class="modules">
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p5"><i class="ti ti-topology-ring" aria-hidden="true"></i></div>
-      <div class="module-name">Agentic RL</div>
-    </div>
-    <ul class="module-items">
-      <li>多轮 Rollout 轨迹建模</li>
-      <li>环境交互与工具调用</li>
-      <li>Rollout-as-a-Service 设计</li>
-      <li>GiGPO 步骤级学习</li>
-    </ul>
-    <span class="tag tag-adv">进阶</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p5"><i class="ti ti-photo" aria-hidden="true"></i></div>
-      <div class="module-name">多模态 RL</div>
-    </div>
-    <ul class="module-items">
-      <li>VLM 的 RL 后训练</li>
-      <li>视觉奖励建模</li>
-      <li>Kimi-VL / Qwen2.5-VL 实践</li>
-      <li>多模态 GRPO 适配</li>
-    </ul>
-    <span class="tag tag-adv">进阶</span>
-  </div>
-  <div class="module-card">
-    <div class="module-top">
-      <div class="module-icon icon-p5"><i class="ti ti-code" aria-hidden="true"></i></div>
-      <div class="module-name">工程复现实践</div>
-    </div>
-    <ul class="module-items">
-      <li>DeepSeek-R1-Zero 复现</li>
-      <li>基于 veRL 实现 GRPO/DAPO</li>
-      <li>自定义 Reward Function</li>
-      <li>实验追踪与调试技巧</li>
-    </ul>
-    <span class="tag tag-code">动手</span>
-  </div>
-</div>
-
-<hr class="divider">
-<div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div>理论/论文</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#0F6E56"></div>必学核心</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#854F0B"></div>系统/工程</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#993C1D"></div>进阶专题</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>代码实现</div>
-</div>
-
-</div>
+</body>
+</html>
+ 
