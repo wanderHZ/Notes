@@ -1,0 +1,211 @@
+
+<svg width="100%" viewBox="0 0 680 1020" role="img">
+<title>P 矩阵量化改进方向分析</title>
+<desc>从分布异质性、scale 设计、PV 联合剪枝三个维度分析改进方向</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ====== Section 1: 两种 P 行的 scale 利用效率对比 ====== -->
+<text class="th" x="340" y="24" text-anchor="middle" font-size="14">问题 1：两级量化的 scale 利用效率因行分布而异</text>
+
+<!-- 均匀分布行 -->
+<text class="th" x="160" y="50" text-anchor="middle" font-size="12" fill="#185FA5">均匀行（diffuse head）</text>
+<text class="ts" x="160" y="64" text-anchor="middle">max ≈ 0.01，内部方差极小</text>
+
+<!-- E4M3 range bar for uniform -->
+<rect x="40" y="72" width="240" height="18" rx="3" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+<rect x="40" y="72" width="234" height="18" rx="3" fill="#185FA5" fill-opacity="0.75"/>
+<text class="ts" x="160" y="85" text-anchor="middle" fill="#E6F1FB">sP2 充分利用 E4M3（好）</text>
+
+<!-- FP4 grid usage for uniform: but values cluster -->
+<text class="ts" x="160" y="108" text-anchor="middle">FP4 量化后内部值</text>
+<rect x="40" y="114" width="240" height="18" rx="3" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+<!-- values cluster near zero -->
+<rect x="40" y="114" width="30" height="18" rx="2" fill="#185FA5" fill-opacity="0.8"/>
+<rect x="72" y="114" width="8" height="18" rx="1" fill="#185FA5" fill-opacity="0.5"/>
+<rect x="82" y="114" width="4" height="18" rx="1" fill="#185FA5" fill-opacity="0.3"/>
+<text class="ts" x="160" y="142" text-anchor="middle" fill="#A32D2D">但值集中在低端，高端 FP4 网格点浪费</text>
+
+<!-- 尖峰分布行 -->
+<text class="th" x="500" y="50" text-anchor="middle" font-size="12" fill="#993C1D">尖峰行（retrieval head）</text>
+<text class="ts" x="500" y="64" text-anchor="middle">max ≈ 0.95，内部跨越多个数量级</text>
+
+<!-- E4M3 range bar for spiked -->
+<rect x="380" y="72" width="260" height="18" rx="3" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+<rect x="380" y="72" width="254" height="18" rx="3" fill="#D85A30" fill-opacity="0.75"/>
+<text class="ts" x="510" y="85" text-anchor="middle" fill="#FAECE7">sP2 同样充分利用 E4M3（好）</text>
+
+<!-- FP4 grid usage for spiked: peak takes most range, small values all round to near-zero -->
+<rect x="380" y="114" width="260" height="18" rx="3" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+<rect x="600" y="114" width="38" height="18" rx="2" fill="#D85A30" fill-opacity="0.9"/>
+<rect x="580" y="114" width="18" height="18" rx="1" fill="#D85A30" fill-opacity="0.2"/>
+<rect x="380" y="114" width="30" height="18" rx="1" fill="#D85A30" fill-opacity="0.08"/>
+<text class="ts" x="510" y="108" text-anchor="middle">FP4 量化后内部值</text>
+<text class="ts" x="510" y="142" text-anchor="middle" fill="#A32D2D">小值全部 round 到近零，精度损失集中在低端</text>
+
+<!-- 统一映射到 448×6 的问题 callout -->
+<rect x="40" y="154" width="600" height="34" rx="8" fill="#FAEEDA" stroke="#BA7517" stroke-width="0.8"/>
+<text class="ts" x="340" y="168" text-anchor="middle" fill="#633806">核心问题：sP1 = rowmax/(448×6) 让所有行的 max 对齐到同一上界，但行内动态范围完全不同</text>
+<text class="ts" x="340" y="183" text-anchor="middle" fill="#633806">→ 均匀行的小值被精确表示；尖峰行中，处于峰值 block 以外的小值精度损失更大，且这些小值占 block 中的多数位置</text>
+
+<!-- ====== Section 2: 分布感知的 scale 改进 ====== -->
+<line x1="40" y1="200" x2="640" y2="200" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text class="th" x="340" y="220" text-anchor="middle" font-size="14">改进方向 A：分布感知的自适应 scale 上界</text>
+
+<!-- current vs proposed -->
+<g class="c-gray">
+  <rect x="40" y="230" width="280" height="80" rx="8" stroke-width="0.5"/>
+  <text class="th" x="180" y="250" text-anchor="middle">现有方案（固定上界）</text>
+  <text class="ts" x="180" y="268" text-anchor="middle">sP1 = rowmax / (448×6)</text>
+  <text class="ts" x="180" y="284" text-anchor="middle">所有行共用同一上界</text>
+  <text class="ts" x="180" y="300" text-anchor="middle" fill="#A32D2D">✗ 忽略行内分布形状</text>
+</g>
+
+<g class="c-teal">
+  <rect x="360" y="230" width="280" height="80" rx="8" stroke-width="0.5"/>
+  <text class="th" x="500" y="250" text-anchor="middle">改进方案（自适应上界）</text>
+  <text class="ts" x="500" y="268" text-anchor="middle">sP1 = rowmax / (α_row × 6)</text>
+  <text class="ts" x="500" y="284" text-anchor="middle">α_row 根据行熵或方差动态选</text>
+  <text class="ts" x="500" y="300" text-anchor="middle" fill="#085041">✓ 均匀行 α 小，尖峰行 α 大</text>
+</g>
+
+<text class="ts" x="340" y="326" text-anchor="middle">自适应 α 的候选指标：行熵 H(p) = -Σpᵢlog(pᵢ)，或行内 max/mean 比值（尖峰度）</text>
+<text class="ts" x="340" y="340" text-anchor="middle">对于高熵（均匀）行：值域窄，选小 α；对于低熵（尖峰）行：峰值大，选大 α，让峰值撑满 E4M3</text>
+<rect x="40" y="350" width="600" height="24" rx="6" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.5"/>
+<text class="ts" x="340" y="365" text-anchor="middle">代价：需在 online softmax 内额外维护行熵统计，但可与 rowmax reduce 融合，额外开销极小</text>
+
+<!-- ====== Section 3: head-level scale ====== -->
+<line x1="40" y1="386" x2="640" y2="386" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text class="th" x="340" y="406" text-anchor="middle" font-size="14">改进方向 B：head 级别的 scale 先验（离线校准）</text>
+
+<!-- head types -->
+<g class="c-purple">
+  <rect x="40"  y="416" width="175" height="64" rx="8" stroke-width="0.5"/>
+  <text class="th" x="127" y="436" text-anchor="middle">Retrieval head</text>
+  <text class="ts" x="127" y="452" text-anchor="middle">P 极度集中</text>
+  <text class="ts" x="127" y="468" text-anchor="middle">α 应更大（≈ 448）</text>
+</g>
+<g class="c-blue">
+  <rect x="253" y="416" width="175" height="64" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="436" text-anchor="middle">Diffuse head</text>
+  <text class="ts" x="340" y="452" text-anchor="middle">P 接近均匀</text>
+  <text class="ts" x="340" y="468" text-anchor="middle">α 应更小（≈ 64）</text>
+</g>
+<g class="c-amber">
+  <rect x="466" y="416" width="175" height="64" rx="8" stroke-width="0.5"/>
+  <text class="th" x="553" y="436" text-anchor="middle">Sink head</text>
+  <text class="ts" x="553" y="452" text-anchor="middle">固定几个 token 高权重</text>
+  <text class="ts" x="553" y="468" text-anchor="middle">α 可静态校准</text>
+</g>
+
+<text class="ts" x="340" y="500" text-anchor="middle">离线对每个 head 做分布统计（类似 AWQ 的 per-channel scale 搜索），得到 per-head α 表</text>
+<text class="ts" x="340" y="514" text-anchor="middle">推理时直接查表，无额外计算开销；α 表大小 = num_heads × 1，极小</text>
+
+<!-- ====== Section 4: PV 联合剪枝 ====== -->
+<line x1="40" y1="530" x2="640" y2="530" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text class="th" x="340" y="550" text-anchor="middle" font-size="14">改进方向 C：P 大 ≠ 对 O 贡献大——PV 联合重要性</text>
+
+<text class="ts" x="340" y="568" text-anchor="middle">BLASST 跳过条件：max(P_block) &lt; λ   →   只看 P 的幅值</text>
+<text class="ts" x="340" y="582" text-anchor="middle">但 O = PV，第 j 个 block 对 O 的真实贡献 ∝ P_block × ‖V_block‖</text>
+
+<!-- example: P large V small -->
+<rect x="40" y="592" width="280" height="80" rx="8" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.7"/>
+<text class="th" x="180" y="612" text-anchor="middle">场景：P 大，V 小</text>
+<text class="ts" x="180" y="628" text-anchor="middle">P_block_max = 0.3（不被跳过）</text>
+<text class="ts" x="180" y="644" text-anchor="middle">‖V_block‖ ≈ 0.01</text>
+<text class="ts" x="180" y="660" text-anchor="middle" fill="#A32D2D">实际贡献 ≈ 0.003，可被跳过</text>
+
+<!-- example: P small V large -->
+<rect x="360" y="592" width="280" height="80" rx="8" fill="var(--color-background-secondary)" stroke="var(--color-border-secondary)" stroke-width="0.7"/>
+<text class="th" x="500" y="612" text-anchor="middle">场景：P 小，V 大</text>
+<text class="ts" x="500" y="628" text-anchor="middle">P_block_max = 0.05（被跳过）</text>
+<text class="ts" x="500" y="644" text-anchor="middle">‖V_block‖ ≈ 20</text>
+<text class="ts" x="500" y="660" text-anchor="middle" fill="#0F6E56">实际贡献 = 1.0，不该被跳过！</text>
+
+<!-- revised condition -->
+<rect x="40" y="682" width="600" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.8"/>
+<text class="th" x="340" y="698" text-anchor="middle" fill="#04342C">改进跳过条件：max(P_block) × ‖V_block‖_estimate &lt; λ_joint</text>
+<text class="ts" x="340" y="714" text-anchor="middle" fill="#085041">‖V‖ 可用 per-block 的 FP8 scale（sV）近似——已经在量化 V 时计算，零额外开销</text>
+
+<!-- ====== Section 5: BLASST + FP4 联合框架 ====== -->
+<line x1="40" y1="736" x2="640" y2="736" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text class="th" x="340" y="756" text-anchor="middle" font-size="14">整合方案：BLASST × SageAttention3 联合优化框架</text>
+
+<!-- pipeline boxes -->
+<g class="c-gray">
+  <rect x="40" y="768" width="100" height="44" rx="6" stroke-width="0.5"/>
+  <text class="th" x="90" y="787" text-anchor="middle">QK GEMM</text>
+  <text class="ts" x="90" y="801" text-anchor="middle">FP4 + sQ·sK</text>
+</g>
+<line x1="142" y1="790" x2="165" y2="790" class="arr" marker-end="url(#arrow)"/>
+<g class="c-blue">
+  <rect x="167" y="768" width="130" height="44" rx="6" stroke-width="1"/>
+  <text class="th" x="232" y="785" text-anchor="middle">Online softmax</text>
+  <text class="ts" x="232" y="799" text-anchor="middle">+BLASST skip check</text>
+  <text class="ts" x="232" y="809" text-anchor="middle">+行熵统计</text>
+</g>
+<line x1="299" y1="790" x2="322" y2="790" class="arr" marker-end="url(#arrow)"/>
+<g class="c-amber">
+  <rect x="324" y="768" width="150" height="44" rx="6" stroke-width="1"/>
+  <text class="th" x="399" y="783" text-anchor="middle">两级量化 P</text>
+  <text class="ts" x="399" y="797" text-anchor="middle">自适应 α（per-head表）</text>
+  <text class="ts" x="399" y="811" text-anchor="middle">+ 行熵自适应 sP1</text>
+</g>
+<line x1="476" y1="790" x2="499" y2="790" class="arr" marker-end="url(#arrow)"/>
+<g class="c-teal">
+  <rect x="501" y="768" width="140" height="44" rx="6" stroke-width="1"/>
+  <text class="th" x="571" y="783" text-anchor="middle">PV GEMM</text>
+  <text class="ts" x="571" y="797" text-anchor="middle">FP4MM(P̂, sP, V̂, sV)</text>
+  <text class="ts" x="571" y="811" text-anchor="middle">× sP1（补偿）</text>
+</g>
+
+<!-- BLASST的更精细条件 -->
+<rect x="167" y="820" width="130" height="30" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text class="ts" x="232" y="831" text-anchor="middle" fill="#0C447C">跳过条件升级为</text>
+<text class="ts" x="232" y="843" text-anchor="middle" fill="#0C447C">P_max × sV &lt; λ_joint</text>
+<line x1="232" y1="820" x2="232" y2="812" stroke="#185FA5" stroke-width="0.8" marker-end="url(#arrow)"/>
+
+<!-- ====== Section 6: 总结对比表 ====== -->
+<line x1="40" y1="866" x2="640" y2="866" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text class="th" x="340" y="886" text-anchor="middle" font-size="13">改进点汇总：精度提升 vs 实现代价</text>
+
+<rect x="40" y="896" width="600" height="18" rx="0" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+<text class="ts" x="60" y="909" font-weight="500">改进点</text>
+<text class="ts" x="260" y="909" font-weight="500">精度增益</text>
+<text class="ts" x="420" y="909" font-weight="500">实现代价</text>
+<text class="ts" x="590" y="909" text-anchor="middle" font-weight="500">优先级</text>
+
+<rect x="40" y="914" width="600" height="18" rx="0" fill="var(--color-background-primary)" stroke="var(--color-border-tertiary)" stroke-width="0.3"/>
+<text class="ts" x="60" y="927">自适应 α（行熵）</text>
+<text class="ts" x="260" y="927">尖峰行小值精度显著提升</text>
+<text class="ts" x="420" y="927">轻微（与 rowmax reduce 融合）</text>
+<text class="ts" x="590" y="927" text-anchor="middle" fill="#0F6E56">★★★</text>
+
+<rect x="40" y="932" width="600" height="18" rx="0" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.3"/>
+<text class="ts" x="60" y="945">per-head α 表</text>
+<text class="ts" x="260" y="945">retrieval head 精度提升明显</text>
+<text class="ts" x="420" y="945">离线一次，推理零开销</text>
+<text class="ts" x="590" y="945" text-anchor="middle" fill="#0F6E56">★★★</text>
+
+<rect x="40" y="950" width="600" height="18" rx="0" fill="var(--color-background-primary)" stroke="var(--color-border-tertiary)" stroke-width="0.3"/>
+<text class="ts" x="60" y="963">PV 联合跳过（P_max×sV）</text>
+<text class="ts" x="260" y="963">减少误跳（V 大的 block）</text>
+<text class="ts" x="420" y="963">额外一次乘法（sV 已有）</text>
+<text class="ts" x="590" y="963" text-anchor="middle" fill="#0F6E56">★★★</text>
+
+<rect x="40" y="968" width="600" height="18" rx="0" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.3"/>
+<text class="ts" x="60" y="981">BLASST 稀疏 + FP4 量化联合</text>
+<text class="ts" x="260" y="981">跳过 block 无需量化 P/V</text>
+<text class="ts" x="420" y="981">需修改量化 kernel 调度</text>
+<text class="ts" x="590" y="981" text-anchor="middle" fill="#BA7517">★★</text>
+
+<rect x="40" y="986" width="600" height="18" rx="0" fill="var(--color-background-primary)" stroke="var(--color-border-tertiary)" stroke-width="0.3"/>
+<text class="ts" x="60" y="999">sP1 本身量化为 FP8</text>
+<text class="ts" x="260" y="999">减少补乘精度损失</text>
+<text class="ts" x="420" y="999">需分析数值稳定性</text>
+<text class="ts" x="590" y="999" text-anchor="middle" fill="#BA7517">★★</text>
+
+</svg>
